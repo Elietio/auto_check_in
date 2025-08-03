@@ -28,14 +28,34 @@ class TestFastlinkCheckin(unittest.TestCase):
         mock_checkin_response.json.return_value = {'ret': 1, 'msg': 'Check-in successful'}
         mock_checkin_response.raise_for_status.return_value = None
 
-        # Configure the session's post method to return the mocked responses
+        # Mock the user info response
+        mock_user_response = MagicMock()
+        # 提供一个模拟的HTML响应，包含所有需要提取的信息
+        mock_user_response.text = '''
+        <div class="user-info">
+            <p>"Unused_Traffic", "10.00 GB"</p>
+            <p>"Traffic_RestDay", "2025-08-10"</p>
+            <p>今日已用: 1.25 GB</p>
+            <p>官网网址: <a href="https://example.com">https://example.com</a></p>
+            <p>备用网址: <a href="https://backup.example.com">https://backup.example.com</a></p>
+            <p>国内加速: <a href="https://cn.example.com">https://cn.example.com</a></p>
+            <p>优惠码: DISCOUNT123</p>
+        </div>
+        '''
+        mock_user_response.raise_for_status.return_value = None
+
+        # Configure the session's methods to return the mocked responses
         mock_sess_instance.post.side_effect = [mock_login_response, mock_checkin_response]
+        mock_sess_instance.get.return_value = mock_user_response
 
         # Run the main function
         fastlink_checkin.main()
 
-        # Assert that the post method was called twice
+        # Assert that the post method was called twice (login and check-in)
         self.assertEqual(mock_sess_instance.post.call_count, 2)
+        
+        # Assert that the get method was called once (user info)
+        self.assertEqual(mock_sess_instance.get.call_count, 1)
 
     @patch('fastlink.fastlink_checkin.requests.Session')
     def test_main_login_failure(self, mock_session):
