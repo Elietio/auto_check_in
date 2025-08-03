@@ -1,4 +1,4 @@
-# auto_check
+# auto_check_in
 Self-used check-in script
 
 ## Fastlink
