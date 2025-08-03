@@ -4,8 +4,19 @@
 EMAIL="YOUR_EMAIL_HERE"
 PASSWORD="YOUR_PASSWORD_HERE"
 BASE_URL="https://cc01.fastlink.lat"
+
+# 推送配置
+# 推送方式: "serverchan" 或 "fcm"
+PUSH_METHOD="serverchan"
+
+# ServerChan 配置
 SERVERCHAN_UID="YOUR_SERVERCHAN_UID_HERE"
 SERVERCHAN_SENDKEY="YOUR_SERVERCHAN_SENDKEY_HERE"
+
+# FCM 配置
+FCM_ENDPOINT="https://us-central1-fir-cloudmessaging-4e2cd.cloudfunctions.net/send"
+# 替换为你的FCM令牌
+FCM_TOKEN="YOUR_FCM_TOKEN"
 # -------------------
 
 # URL encode the credentials
@@ -49,7 +60,7 @@ urlencode() {
 }
 
 # Function to send notification to ServerChan
-send_notification() {
+send_notification_serverchan() {
   local title="$1"
   local desp="$2"
   local tags="$3"
@@ -58,9 +69,6 @@ send_notification() {
     echo "ServerChan SendKey not configured, skipping notification."
     return
   fi
-  
-  # ServerChan 使用 Markdown 格式，我们需要确保换行正确
-  # 不需要转换换行符，直接使用原始格式
   
   # URL encode parameters
   local encoded_title=$(urlencode "$title")
@@ -77,6 +85,67 @@ send_notification() {
     echo "ServerChan notification sent successfully."
   else
     echo "Failed to send ServerChan notification: $response"
+  fi
+}
+
+# Function to send notification using FCM
+send_notification_fcm() {
+  local title="$1"
+  local message="$2"
+  
+  if [ -z "$FCM_TOKEN" ]; then
+    echo "FCM Token not configured, skipping notification."
+    return
+  fi
+  
+  echo "Sending notification via FCM..."
+  
+  # 对消息内容进行转义处理，避免 JSON 格式错误
+  local escaped_title=$(echo "$title" | sed 's/"/\\"/g')
+  local escaped_message=$(echo "$message" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+  
+  # 使用与 fcm-push.md 中完全相同的 JSON 结构
+  local payload='{
+    "data": {
+      "to": "'"$FCM_TOKEN"'",
+      "ttl": 60,
+      "priority": "high",
+      "data": {
+        "text": {
+          "title": "'"$escaped_title"'",
+          "message": "'"$escaped_message"'",
+          "clipboard": false
+        }
+      }
+    }
+  }'
+  
+  local response=$(curl -s -X POST "${FCM_ENDPOINT}" \
+    -H "Content-Type: application/json" \
+    -d "$payload")
+  
+  echo "FCM response: $response"
+  
+  # 检查响应是否成功
+  if [[ "$response" != *"error"* ]]; then
+    echo "FCM notification sent successfully."
+  else
+    echo "Failed to send FCM notification. Response: $response"
+  fi
+}
+
+# Function to send notification using the configured method
+send_notification() {
+  local title="$1"
+  local desp="$2"
+  local tags="$3"
+  
+  if [ "${PUSH_METHOD,,}" = "serverchan" ]; then
+    send_notification_serverchan "$title" "$desp" "$tags"
+  elif [ "${PUSH_METHOD,,}" = "fcm" ]; then
+    send_notification_fcm "$title" "$desp"
+  else
+    echo "Unknown push method: $PUSH_METHOD"
   fi
 }
 

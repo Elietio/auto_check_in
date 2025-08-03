@@ -1,12 +1,24 @@
 import requests
 import re
+import json
 
 # --- Configuration ---
 EMAIL = "YOUR_EMAIL_HERE"
 PASSWORD = "YOUR_PASSWORD_HERE"
 BASE_URL = "https://cc01.fastlink.lat"
+
+# 推送配置
+# 推送方式: "serverchan" 或 "fcm"
+PUSH_METHOD = "serverchan"
+
+# ServerChan 配置
 SERVERCHAN_UID = "YOUR_SERVERCHAN_UID_HERE"
 SERVERCHAN_SENDKEY = "YOUR_SERVERCHAN_SENDKEY_HERE"
+
+# FCM 配置
+FCM_ENDPOINT = "https://us-central1-fir-cloudmessaging-4e2cd.cloudfunctions.net/send"
+# 替换为你的FCM令牌
+FCM_TOKEN = "YOUR_FCM_TOKEN"
 # -------------------
 
 # Headers to mimic a browser
@@ -19,7 +31,7 @@ HEADERS = {
     'X-Requested-With': 'XMLHttpRequest',
 }
 
-def send_notification(title, desp, tags=None):
+def send_notification_serverchan(title, desp, tags=None):
     """
     Sends a notification to ServerChan.
     """
@@ -44,6 +56,54 @@ def send_notification(title, desp, tags=None):
             print(f"Failed to send ServerChan notification: {result.get('message')}")
     except requests.exceptions.RequestException as e:
         print(f"An error occurred while sending notification: {e}")
+
+def send_notification_fcm(title, message):
+    """
+    Sends a notification using Firebase Cloud Messaging.
+    """
+    if not FCM_TOKEN:
+        print("FCM Token not configured, skipping notification.")
+        return
+    
+    url = FCM_ENDPOINT
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    
+    payload = {
+        "data": {
+            "to": FCM_TOKEN,
+            "ttl": 60,
+            "priority": "high",
+            "data": {
+                "text": {
+                    "title": title,
+                    "message": message,
+                    "clipboard": False
+                }
+            }
+        }
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        response.raise_for_status()
+        print("FCM notification sent successfully.")
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred while sending FCM notification: {e}")
+        if hasattr(e, 'response') and e.response:
+            print(f"Response: {e.response.text}")
+
+def send_notification(title, desp, tags=None):
+    """
+    Sends a notification using the configured method.
+    """
+    if PUSH_METHOD.lower() == "serverchan":
+        send_notification_serverchan(title, desp, tags)
+    elif PUSH_METHOD.lower() == "fcm":
+        send_notification_fcm(title, desp)
+    else:
+        print(f"Unknown push method: {PUSH_METHOD}")
 
 def main():
     """
