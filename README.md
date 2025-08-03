@@ -51,6 +51,6 @@ The script supports two methods for push notifications:
 2. **Firebase Cloud Messaging (FCM)**
    - Google's cross-platform messaging solution
    - Requires an FCM token for your device
-   - You can get your FCM token using [FCM Toolbox](https://fcm-toolbox-public.web.app/)
+   - You can get your FCM token and test push notifications using [FCM Toolbox](https://fcm-toolbox-public.web.app/)
 
 You can choose which method to use by setting the `PUSH_METHOD` variable in the configuration section.
