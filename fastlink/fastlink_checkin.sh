@@ -53,6 +53,15 @@ USER_INFO_HEADERS=(
   -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'
 )
 
+# Function to add a random delay
+random_delay() {
+  local min_s=${1:-2}
+  local max_s=${2:-5}
+  local delay=$(( (RANDOM % (max_s - min_s + 1)) + min_s ))
+  echo "Waiting for ${delay} seconds to mimic human behavior..."
+  sleep $delay
+}
+
 # Function to URL encode strings for ServerChan
 urlencode() {
   local string="$1"
@@ -150,16 +159,19 @@ send_notification() {
 }
 
 # 1. Login
+random_delay 60 300
 echo "$(date '+%Y-%m-%d %H:%M:%S') Attempting to log in..."
 LOGIN_RESPONSE=$(curl -s -L -c "$COOKIE_JAR" -b "$COOKIE_JAR" "${LOGIN_HEADERS[@]}" --data-raw "email=${URL_ENCODED_EMAIL}&passwd=${URL_ENCODED_PASSWORD}&code=" "${BASE_URL}/auth/login")
 
 # Handle verification if necessary
 if [[ "$LOGIN_RESPONSE" == *"访问验证"* ]]; then
   echo "Verification page detected. Submitting verification..."
+  random_delay
   # The verification POST updates the cookies. We don't need its output.
   curl -s -c "$COOKIE_JAR" -b "$COOKIE_JAR" "${LOGIN_HEADERS[@]}" --data-raw "next=%2Fauth%2Flogin" "${BASE_URL}/verify" > /dev/null
   
   echo "Verification submitted. Retrying login..."
+  random_delay
   LOGIN_RESPONSE=$(curl -s -c "$COOKIE_JAR" -b "$COOKIE_JAR" "${LOGIN_HEADERS[@]}" --data-raw "email=${URL_ENCODED_EMAIL}&passwd=${URL_ENCODED_PASSWORD}&code=" "${BASE_URL}/auth/login")
 fi
 
@@ -169,12 +181,14 @@ if [[ "$LOGIN_RESPONSE" == *'"ret":1'* ]]; then
   echo "Login successful: $LOGIN_MSG"
 
   # 2. Check-in
+  random_delay
   echo -e "\nAttempting to check in..."
   CHECKIN_RESPONSE=$(curl -s -X POST -b "$COOKIE_JAR" "${CHECKIN_HEADERS[@]}" "${BASE_URL}/user/checkin")
   CHECKIN_MSG=$(echo "$CHECKIN_RESPONSE" | jq -r .msg)
   echo "Check-in response: $CHECKIN_MSG"
   
   # 3. Get user info
+  random_delay
   echo -e "\nFetching user information..."
   USER_RESPONSE=$(curl -s -b "$COOKIE_JAR" "${USER_INFO_HEADERS[@]}" "${BASE_URL}/user")
   

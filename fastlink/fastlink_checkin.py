@@ -1,6 +1,8 @@
 import requests
 import re
 import json
+import time
+import random
 
 # --- Configuration ---
 EMAIL = "YOUR_EMAIL_HERE"
@@ -105,6 +107,13 @@ def send_notification(title, desp, tags=None):
     else:
         print(f"Unknown push method: {PUSH_METHOD}")
 
+def random_delay(min_s=2, max_s=5):
+    """Waits for a random duration between min_s and max_s seconds."""
+    delay = random.uniform(min_s, max_s)
+    print(f"Waiting for {delay:.2f} seconds to mimic human behavior...")
+    time.sleep(delay)
+
+
 def main():
     """
     Logs into Fastlink, performs check-in, and retrieves user info.
@@ -118,6 +127,7 @@ def main():
     with requests.Session() as session:
         # 1. Login
         try:
+            random_delay(60, 300)
             print("Attempting to log in...")
             login_response = session.post(
                 f'{BASE_URL}/auth/login',
@@ -129,6 +139,7 @@ def main():
             # Handle verification if necessary
             if "访问验证" in login_response.text:
                 print("Verification page detected. Submitting verification...")
+                random_delay()
                 verify_data = {'next': '/auth/login'}
                 verify_response = session.post(
                     f'{BASE_URL}/verify',
@@ -136,8 +147,9 @@ def main():
                     data=verify_data
                 )
                 verify_response.raise_for_status()
+                
                 print("Verification submitted. Retrying login...")
-
+                random_delay()
                 # Retry login
                 login_response = session.post(
                     f'{BASE_URL}/auth/login',
@@ -164,6 +176,7 @@ def main():
         # 2. Check-in
         checkin_message = ""
         try:
+            random_delay()
             print("\nAttempting to check in...")
             checkin_response = session.post(f'{BASE_URL}/user/checkin', headers=session.headers)
             checkin_response.raise_for_status()
@@ -175,6 +188,7 @@ def main():
 
         # 3. Get user info
         try:
+            random_delay()
             print("\nFetching user information...")
             user_response = session.get(f'{BASE_URL}/user', headers=session.headers)
             user_response.raise_for_status()
