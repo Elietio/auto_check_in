@@ -125,6 +125,27 @@ def main():
                 data=login_data
             )
             login_response.raise_for_status()
+
+            # Handle verification if necessary
+            if "访问验证" in login_response.text:
+                print("Verification page detected. Submitting verification...")
+                verify_data = {'next': '/auth/login'}
+                verify_response = session.post(
+                    f'{BASE_URL}/verify',
+                    headers=HEADERS,
+                    data=verify_data
+                )
+                verify_response.raise_for_status()
+                print("Verification submitted. Retrying login...")
+
+                # Retry login
+                login_response = session.post(
+                    f'{BASE_URL}/auth/login',
+                    headers=HEADERS,
+                    data=login_data
+                )
+                login_response.raise_for_status()
+
             login_json = login_response.json()
             print(f"Login successful: {login_json.get('msg', 'No message')}")
         except (requests.exceptions.RequestException, ValueError) as e:

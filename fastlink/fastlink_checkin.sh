@@ -151,7 +151,17 @@ send_notification() {
 
 # 1. Login
 echo "$(date '+%Y-%m-%d %H:%M:%S') Attempting to log in..."
-LOGIN_RESPONSE=$(curl -s -c "$COOKIE_JAR" "${LOGIN_HEADERS[@]}" --data-raw "email=${URL_ENCODED_EMAIL}&passwd=${URL_ENCODED_PASSWORD}&code=" "${BASE_URL}/auth/login")
+LOGIN_RESPONSE=$(curl -s -L -c "$COOKIE_JAR" -b "$COOKIE_JAR" "${LOGIN_HEADERS[@]}" --data-raw "email=${URL_ENCODED_EMAIL}&passwd=${URL_ENCODED_PASSWORD}&code=" "${BASE_URL}/auth/login")
+
+# Handle verification if necessary
+if [[ "$LOGIN_RESPONSE" == *"访问验证"* ]]; then
+  echo "Verification page detected. Submitting verification..."
+  # The verification POST updates the cookies. We don't need its output.
+  curl -s -c "$COOKIE_JAR" -b "$COOKIE_JAR" "${LOGIN_HEADERS[@]}" --data-raw "next=%2Fauth%2Flogin" "${BASE_URL}/verify" > /dev/null
+  
+  echo "Verification submitted. Retrying login..."
+  LOGIN_RESPONSE=$(curl -s -c "$COOKIE_JAR" -b "$COOKIE_JAR" "${LOGIN_HEADERS[@]}" --data-raw "email=${URL_ENCODED_EMAIL}&passwd=${URL_ENCODED_PASSWORD}&code=" "${BASE_URL}/auth/login")
+fi
 
 # Check for login success
 if [[ "$LOGIN_RESPONSE" == *'"ret":1'* ]]; then
