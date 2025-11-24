@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Set PATH to include common system binary directories for cron compatibility
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 # --- Configuration ---
 # Comma-separated list of domains to check
 DOMAINS_TO_CHECK="www.elietio.xyz,shiki.elietio.tk"
