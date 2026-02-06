@@ -1,62 +1,92 @@
-# auto_check_in
-Self-used check-in script
+# Auto Check-in Scripts
 
-## Fastlink
+A collection of personal automation scripts for daily check-ins and other tasks.
 
-This script automates the daily check-in process for Fastlink.
+## Fastlink Daily Check-in
 
-### Usage
+This script automates the daily check-in process for Fastlink to claim daily rewards. It supports both Python and Bash execution environments.
 
-#### Python
+### 1. Initial Setup
 
-1.  **Install dependencies:**
+Before running the script for the first time, you need to configure your credentials.
+
+1.  **Find the template file:** Navigate to the `fastlink` directory. You will find a file named `.env.example`.
+
+2.  **Create your configuration file:** Create a copy of this file and name it `.env`.
     ```bash
-    pip install requests
+    cp fastlink/.env.example fastlink/.env
     ```
-2.  **Configure credentials:**
-    Open `fastlink/fastlink_checkin.py` and fill in your `EMAIL` and `PASSWORD`.
-3.  **Configure push notifications (optional):**
-    - Set `PUSH_METHOD` in the script to either "serverchan" or "fcm".
-    - Set the required environment variables:
-      - `SERVERCHAN_UID` and `SERVERCHAN_SENDKEY` (for ServerChan)
-      - `FCM_TOKEN` (for FCM)
-4.  **Run the script:**
+
+3.  **Edit the `.env` file:** Open `fastlink/.env` with a text editor and fill in your Fastlink `EMAIL` and `PASSWORD`.
+
+    ```dotenv
+    # fastlink/.env
+
+    # Your FastLink email
+    EMAIL="YOUR_EMAIL_HERE"
+
+    # Your FastLink password
+    PASSWORD="YOUR_PASSWORD_HERE"
+    ```
+    This file is ignored by Git, so your credentials will not be committed.
+
+### 2. Running the Script
+
+You can choose to run either the Python or the Bash version of the script.
+
+---
+
+#### **Option A: Using Python**
+
+This is the recommended method as it provides more detailed feedback and error handling.
+
+1.  **Install Dependencies:**
+    Make sure you have Python 3 installed. Then, install the required packages using `requirements.txt`.
     ```bash
-    export SERVERCHAN_SENDKEY="your_key"
+    pip install -r requirements.txt
+    ```
+
+2.  **Run the Script:**
+    Execute the Python script from the project's root directory.
+    ```bash
     python fastlink/fastlink_checkin.py
     ```
 
-#### Bash
+---
+
+#### **Option B: Using Bash**
+
+A lightweight option if you prefer not to use Python.
 
 1.  **Prerequisites:**
-    - `curl`
-    - `jq`
-2.  **Configure credentials:**
-    Open `fastlink/fastlink_checkin.sh` and fill in your `EMAIL` and `PASSWORD`.
-3.  **Configure push notifications (optional):**
-    - Set `PUSH_METHOD` in the script to either "serverchan" or "fcm".
-    - Set the required environment variables:
-      - `SERVERCHAN_UID` and `SERVERCHAN_SENDKEY` (for ServerChan)
-      - `FCM_TOKEN` (for FCM)
-4.  **Run the script:**
+    Ensure you have `curl` and `jq` installed on your system. You can usually install them with your system's package manager (e.g., `apt-get install curl jq` or `brew install curl jq`).
+
+2.  **Run the Script:**
+    Execute the Bash script from the project's root directory.
     ```bash
-    export FCM_TOKEN="your_token"
     bash fastlink/fastlink_checkin.sh
     ```
 
-### Push Notifications
+### 3. (Optional) Push Notifications
 
-The script supports two methods for push notifications:
+You can receive a notification every time the script runs.
 
-1. **ServerChan**
-   - A free push service that sends notifications to WeChat.
-   - Requires `SERVERCHAN_UID` and `SERVERCHAN_SENDKEY` environment variables. Get them from [ServerChan](https://sc3.ft07.com/).
+1.  **Configuration:**
+    Uncomment and fill in the notification service details in your `fastlink/.env` file.
 
-2. **Firebase Cloud Messaging (FCM)**
-   - Google's cross-platform messaging solution.
-   - Requires `FCM_TOKEN` environment variable.
-   - You can get your FCM token and test push notifications using [FCM Toolbox](https://fcm-toolbox-public.web.app/).
+    - **For [ServerChan](https://sc3.ft07.com/):**
+        ```dotenv
+        SERVERCHAN_UID="Your_UID"
+        SERVERCHAN_SENDKEY="Your_SendKey"
+        ```
+    - **For [FCM Toolbox](https://fcm-toolbox-public.web.app/):**
+        ```dotenv
+        FCM_TOKEN="Your_FCM_Token"
+        ```
+2.  **Enable in Script:**
+    In either `fastlink_checkin.py` or `fastlink_checkin.sh`, set the `PUSH_METHOD` variable to `"serverchan"` or `"fcm"` to enable your chosen service.
 
+---
 ## Let's Encrypt
 
 This script automates the renewal of Let's Encrypt certificates.

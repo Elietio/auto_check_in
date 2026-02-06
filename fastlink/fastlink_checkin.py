@@ -4,10 +4,26 @@ import json
 import time
 import random
 import os
+import sys
+from dotenv import load_dotenv
 
 # --- Configuration ---
-EMAIL = "YOUR_EMAIL_HERE"
-PASSWORD = "YOUR_PASSWORD_HERE"
+# Load environment variables from .env file in the same directory as the script
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    print("Loading environment variables from .env file...")
+    load_dotenv(dotenv_path=dotenv_path)
+
+# Read credentials from environment variables
+EMAIL = os.environ.get("EMAIL")
+PASSWORD = os.environ.get("PASSWORD")
+
+# Exit if credentials are not set
+if not EMAIL or not PASSWORD:
+    print("Error: EMAIL and PASSWORD environment variables must be set.", file=sys.stderr)
+    print("Please create a .env file in the script's directory with your credentials.", file=sys.stderr)
+    sys.exit(1)
+
 BASE_URL = "https://cc01.fastlink.lat"
 
 # 推送配置

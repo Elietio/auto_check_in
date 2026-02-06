@@ -1,8 +1,20 @@
 #!/bin/bash
 
 # --- Configuration ---
-EMAIL="YOUR_EMAIL_HERE"
-PASSWORD="YOUR_PASSWORD_HERE"
+# Load environment variables from .env file if it exists
+if [ -f "$(dirname "$0")/.env" ]; then
+  echo "Loading environment variables from .env file..."
+  # Use 'export' and 'grep' to source the .env file, excluding comments
+  export $(grep -v '^#' "$(dirname "$0")/.env" | xargs)
+fi
+
+# 从环境变量读取凭证，如果未设置则退出
+if [ -z "$EMAIL" ] || [ -z "$PASSWORD" ]; then
+  echo "Error: EMAIL and PASSWORD environment variables must be set."
+  echo "Please create a .env file in the same directory as this script with your credentials."
+  exit 1
+fi
+
 BASE_URL="https://cc01.fastlink.lat"
 
 # 推送配置
