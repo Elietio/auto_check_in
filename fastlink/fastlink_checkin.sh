@@ -9,14 +9,13 @@ BASE_URL="https://cc01.fastlink.lat"
 # 推送方式: "serverchan" 或 "fcm"
 PUSH_METHOD="serverchan"
 
-# ServerChan 配置
-SERVERCHAN_UID="YOUR_SERVERCHAN_UID_HERE"
-SERVERCHAN_SENDKEY="YOUR_SERVERCHAN_SENDKEY_HERE"
+# ServerChan 配置 (从环境变量获取)
+# SERVERCHAN_UID
+# SERVERCHAN_SENDKEY
 
 # FCM 配置
 FCM_ENDPOINT="https://us-central1-fir-cloudmessaging-4e2cd.cloudfunctions.net/send"
-# 替换为你的FCM令牌
-FCM_TOKEN="YOUR_FCM_TOKEN"
+# FCM_TOKEN (从环境变量获取)
 # -------------------
 
 # URL encode the credentials
@@ -75,7 +74,7 @@ send_notification_serverchan() {
   local tags="$3"
   
   if [ -z "$SERVERCHAN_SENDKEY" ]; then
-    echo "ServerChan SendKey not configured, skipping notification."
+    echo "SERVERCHAN_SENDKEY environment variable not set, skipping notification."
     return
   fi
   
@@ -103,7 +102,7 @@ send_notification_fcm() {
   local message="$2"
   
   if [ -z "$FCM_TOKEN" ]; then
-    echo "FCM Token not configured, skipping notification."
+    echo "FCM_TOKEN environment variable not set, skipping notification."
     return
   fi
   

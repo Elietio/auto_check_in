@@ -11,8 +11,7 @@ EXPIRY_THRESHOLD=10
 
 # FCM Configuration
 FCM_ENDPOINT="https://us-central1-fir-cloudmessaging-4e2cd.cloudfunctions.net/send"
-# Replace with your FCM token
-FCM_TOKEN="YOUR_FCM_TOKEN"
+# FCM_TOKEN should be set as an environment variable
 # --- End of Configuration ---
 
 # Function to send notification using FCM
@@ -20,8 +19,8 @@ send_notification_fcm() {
   local title="$1"
   local message="$2"
 
-  if [ -z "$FCM_TOKEN" ] || [ "$FCM_TOKEN" == "YOUR_FCM_TOKEN" ]; then
-    echo "FCM Token not configured, skipping notification."
+  if [ -z "$FCM_TOKEN" ]; then
+    echo "FCM_TOKEN environment variable not set, skipping notification."
     return
   fi
 
@@ -121,8 +120,11 @@ if [ "$NEEDS_RENEWAL" = true ]; then
   nginx_status=$(service nginx status)
   
   # 5. Send notification
-  notification_title="Let's Encrypt Certificate Renewal"
-  notification_message="Certificate renewal process finished.\n\nRenewal Output:\n$renew_output\n\nNginx Status:\n$nginx_status"
+  notification_title="Let's Encrypt Renewal"
+  # Truncate output to a reasonable size for FCM
+  renew_summary=$(echo "$renew_output" | tail -n 10)
+  nginx_summary=$(echo "$nginx_status" | head -n 5)
+  notification_message="Renewal process finished.\n-- Certbot --\n$renew_summary\n-- Nginx --\n$nginx_summary"
   send_notification_fcm "$notification_title" "$notification_message"
   
 else

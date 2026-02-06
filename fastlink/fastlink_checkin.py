@@ -3,6 +3,7 @@ import re
 import json
 import time
 import random
+import os
 
 # --- Configuration ---
 EMAIL = "YOUR_EMAIL_HERE"
@@ -13,14 +14,13 @@ BASE_URL = "https://cc01.fastlink.lat"
 # 推送方式: "serverchan" 或 "fcm"
 PUSH_METHOD = "serverchan"
 
-# ServerChan 配置
-SERVERCHAN_UID = "YOUR_SERVERCHAN_UID_HERE"
-SERVERCHAN_SENDKEY = "YOUR_SERVERCHAN_SENDKEY_HERE"
+# ServerChan 配置 (从环境变量获取)
+SERVERCHAN_UID = os.environ.get("SERVERCHAN_UID")
+SERVERCHAN_SENDKEY = os.environ.get("SERVERCHAN_SENDKEY")
 
-# FCM 配置
+# FCM 配置 (从环境变量获取)
 FCM_ENDPOINT = "https://us-central1-fir-cloudmessaging-4e2cd.cloudfunctions.net/send"
-# 替换为你的FCM令牌
-FCM_TOKEN = "YOUR_FCM_TOKEN"
+FCM_TOKEN = os.environ.get("FCM_TOKEN")
 # -------------------
 
 # Headers to mimic a browser
@@ -38,7 +38,7 @@ def send_notification_serverchan(title, desp, tags=None):
     Sends a notification to ServerChan.
     """
     if not SERVERCHAN_SENDKEY:
-        print("ServerChan SendKey not configured, skipping notification.")
+        print("SERVERCHAN_SENDKEY environment variable not set, skipping notification.")
         return
 
     url = f"https://{SERVERCHAN_UID}.push.ft07.com/send/{SERVERCHAN_SENDKEY}.send"
@@ -64,7 +64,7 @@ def send_notification_fcm(title, message):
     Sends a notification using Firebase Cloud Messaging.
     """
     if not FCM_TOKEN:
-        print("FCM Token not configured, skipping notification.")
+        print("FCM_TOKEN environment variable not set, skipping notification.")
         return
     
     url = FCM_ENDPOINT
